@@ -1,6 +1,7 @@
-'use strict';
+`use strict`
 
-import Category from "./category.model.js"; // Ajusta la ruta si es necesario
+import Category from "./category.model.js";
+import Publication from "../product/product.model.js"
 import mongoose from "mongoose";
 
 
@@ -61,7 +62,7 @@ export const getCategoryById = async (req, res) => {
   console.log("Category Controller: ");
   console.log("-> Fetching category by ID...");
   try {
-    const id = req.params.id;
+    const {id} = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       console.log("-> Invalid ID format provided.");
@@ -101,19 +102,22 @@ export const updateCategory = async (req, res) => {
   console.log("Category Controller: ");
   console.log("-> Updating category...");
   try {
-    const id = req.params.id;
+    const { id } = req.params;
     const data = req.body;
-
-    const updatedCategory = await Category.findByIdAndUpdate(id, data, { new: true });
-
-    if (!updatedCategory) {
+    const oldCategory = await Category.findById(id);
+    
+    if (!oldCategory) {
       console.log("-> Category not found for update.");
       return res.status(404).send({
         message: "Category Controller -> Category not found for update.",
         success: false,
       });
     }
-
+    
+    if (data.name) oldCategory.name = data.name;
+    if (data.description) oldCategory.description = data.description;
+    
+    const updatedCategory = await oldCategory.save();
     console.log("-> Category updated successfully.");
     return res.send({
       message: "Category Controller -> Category updated successfully.",
@@ -130,34 +134,55 @@ export const updateCategory = async (req, res) => {
   }
 };
 
-// Eliminar categoría
+
 export const deleteCategory = async (req, res) => {
   console.log("Category Controller: ");
-  console.log("-> Deleting category...");
+  console.log("-> Marking category as deleted...");
+
   try {
-    const id = req.params.id;
+      const { id } = req.params;
+      const categoryToDelete = await Category.findById(id);
+      if (!categoryToDelete) {
+          console.log("-> Category not found for deletion.");
+          return res.status(404).send({
+              message: "Category Controller -> Category not found for deletion.",
+              success: false,
+          });
+      }
+      const defaultCategory = await Category.findOne({ name: "Not Assigned" });
+      if (!defaultCategory) {
+          console.log("-> Default category not found. Cannot proceed.");
+          return res.status(500).send({
+              message: "Category Controller -> Default category not found. Cannot proceed.",
+              success: false,
+          });
+      }
+      await Product.updateMany(
+          { category: id }, 
+          { category: defaultCategory._id }
+      );
+      console.log("-> All related publications reassigned to default category.");
+      const updatedCategory = await Category.findByIdAndUpdate(
+          id, 
+          { name: `deleted-category ${id}`, description: "not available", status: false }, 
+          { new: true }
+      );
 
-    const deletedCategory = await Category.findByIdAndDelete(id);
-
-    if (!deletedCategory) {
-      console.log("-> Category not found for deletion.");
-      return res.status(404).send({
-        message: "Category Controller -> Category not found for deletion.",
-        success: false,
+      console.log("-> Category marked as deleted successfully.");
+      return res.send({
+          message: "Category Controller -> Category marked as deleted successfully.",
+          success: true,
+          updatedCategory,
       });
-    }
 
-    console.log("-> Category successfully deleted.");
-    return res.send({
-      message: "Category Controller -> Category successfully deleted.",
-      success: true,
-    });
   } catch (error) {
-    console.error("-> An unexpected general error occurred while deleting the category.", error);
-    return res.status(500).send({
-      message: "Category Controller -> An unexpected general error occurred while deleting the category.",
-      success: false,
-      error,
-    });
+      console.error("-> An unexpected error occurred while marking the category as deleted.", error);
+      return res.status(500).send({
+          message: "Category Controller -> An unexpected error occurred while marking the category as deleted.",
+          success: false,
+          error,
+      });
   }
 };
+  
+

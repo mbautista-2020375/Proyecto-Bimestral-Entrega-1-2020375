@@ -157,3 +157,89 @@ export const deleteProduct = async (req, res) => {
     });
   }
 };
+
+
+// --------------------- EXTRA CRUD FUNCTIONS --------------------------------
+
+export const listAvailableProducts = async (req, res) => {
+  console.log("-> Fetching all products...");
+  try {
+    const products = await Product.find({stock: {$gt: 0}});
+    if (products.length === 0) {
+      console.log("-> No products were found for the required call.");
+      return res.status(404).send({
+        message: "Product Controller -> No products were found for the required call.",
+        success: false,
+      });
+    }
+    console.log("-> Available products found and retrieved successfully.");
+    return res.send({
+      message: "Product Controller -> Available products found and retrieved successfully.",
+      products,
+      success: true,
+    });
+  } catch (error) {
+    console.error("-> An unexpected general error occurred while fetching products.", error);
+    return res.status(500).send({
+      message: "Product Controller -> An unexpected general error occurred while fetching products.",
+      success: false,
+      error,
+    });
+  }
+};
+
+export const listUnavailableProducts = async (req, res) => {
+  console.log("-> Fetching all products...");
+  try {
+    const products = await Product.find({stock: {$eq: 0}});
+    if (products.length === 0) {
+      console.log("-> No products were found for the required call.");
+      return res.status(404).send({
+        message: "Product Controller -> No products were found for the required call.",
+        success: false,
+      });
+    }
+    console.log("-> Unavailable products found and retrieved successfully.");
+    return res.send({
+      message: "Product Controller -> Unavailable products found and retrieved successfully.",
+      products,
+      success: true,
+    });
+  } catch (error) {
+    console.error("-> An unexpected general error occurred while fetching products.", error);
+    return res.status(500).send({
+      message: "Product Controller -> An unexpected general error occurred while fetching products.",
+      success: false,
+      error,
+    });
+  }
+}
+
+export const listTopSellers = async (req, res) => {
+  console.log("-> Fetching all products...");
+  try {
+    const products = await Product.find({stock: {$gt: 0}, sold: {$gt: 0}})
+      .sort({sold: -1})
+      .limit(10);
+    if (products.length === 0) {
+      console.log("-> No products were found for the required call.");
+      return res.status(404).send({
+        message: "Product Controller -> No products were found for the required call.",
+        success: false,
+      });
+    }
+    console.log("-> Top 10 products on sells found and retrieved successfully.");
+    return res.send({
+      message: "Product Controller -> Top 10 products on sells found and retrieved successfully.",
+      products,
+      success: true,
+    });
+  } catch (error) {
+    console.error("-> An unexpected general error occurred while fetching products.", error);
+    return res.status(500).send({
+      message: "Product Controller -> An unexpected general error occurred while fetching products.",
+      success: false,
+      error,
+    });
+  }
+}

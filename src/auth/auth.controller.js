@@ -54,46 +54,46 @@ export const registerAdmin = async (req, res) => {
     }
   };
 
-export const login = async (req, res) => {
-    console.log("Auth Controller: ");
-  console.log("-> Logging user...");
-  try {
-    const { userLogin, password } = req.body;
-    const user = await User.findOne({ 
-        $or: [
-            {email: userLogin},
-            {username: userLogin},
-            {phone: userLogin}
-        ]
-     });
-    if (user && await checkPassword(user.password, password)) {
-      const loggedUser = {
-        uid: user._id,
-        name: user.name,
-        username: user.username,
-        role: user.role,
-      };
-      const token = await generateJwt(loggedUser);
-      console.log(`-> Succesfully logged, welcome ${user.username}.`);
-      return res.send({
-        message: `Auth Controller -> Succesfully logged, welcome ${user.name}`,
-        loggedUser,
-        token,
-        success: true,
+  export const login = async (req, res) => {
+    console.log("User Controller: ");
+    console.log("-> Logging user...");
+    try {
+      const { userLogin, password } = req.body;
+      const user = await User.findOne({ 
+          $or: [
+              {email: userLogin},
+              {username: userLogin},
+              {phone: userLogin}
+          ]
+       });
+      if (user && await checkPassword(user.password, password)) {
+        const loggedUser = {
+          uid: user._id,
+          name: user.name,
+          username: user.username,
+          role: user.role,
+        };
+        const token = await generateJwt(loggedUser);
+        console.log(`-> Succesfully logged, welcome ${user.username}.`);
+        return res.send({
+          message: `Auth Controller -> Succesfully logged, welcome ${user.name}`,
+          loggedUser,
+          token,
+          success: true,
+        });
+      }
+  
+      console.log("-> Could not log in, wrong username or password.");
+      return res.status(400).send({
+        message: "Auth Controller -> Could not log in, wrong username or password.",
+        success: false,
+      });
+    } catch (error) {
+      console.error("-> An unexpected general error occurred during login.", error);
+      return res.status(500).send({
+        message: "Auth Controller -> An unexpected general error occurred during login.",
+        success: false,
+        error,
       });
     }
-
-    console.log("-> Could not log in, wrong username or password.");
-    return res.status(400).send({
-      message: "Auth Controller -> Could not log in, wrong username or password.",
-      success: false,
-    });
-  } catch (error) {
-    console.error("-> An unexpected general error occurred during login.", error);
-    return res.status(500).send({
-      message: "Auth Controller -> An unexpected general error occurred during login.",
-      success: false,
-      error,
-    });
-  }
-};
+  };

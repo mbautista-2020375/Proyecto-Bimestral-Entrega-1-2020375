@@ -3,10 +3,9 @@
 import User from "../models/User.js"; // Ajusta la ruta según tu estructura de archivos
 import mongoose from "mongoose";
 
-console.log("User Controller: ");
-
 // Crear usuario
 export const createUser = async (req, res) => {
+  console.log("User Controller: ");
   console.log("-> Creating a new user...");
   try {
     const data = req.body;
@@ -29,6 +28,7 @@ export const createUser = async (req, res) => {
 
 // Obtener todos los usuarios
 export const getAllUsers = async (req, res) => {
+  console.log("User Controller: ");
   console.log("-> Fetching all users...");
   try {
     const users = await User.find();
@@ -57,9 +57,10 @@ export const getAllUsers = async (req, res) => {
 
 // Obtener usuario por ID
 export const getUserById = async (req, res) => {
+  console.log("User Controller: ");
   console.log("-> Fetching user by ID...");
   try {
-    const id = req.params._id;
+    const {id} = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       console.log("-> Invalid ID format provided.");
@@ -96,9 +97,10 @@ export const getUserById = async (req, res) => {
 
 // Actualizar usuario
 export const updateUser = async (req, res) => {
+  console.log("User Controller: ");
   console.log("-> Updating user...");
   try {
-    const id = req.params._id;
+    const {id} = req.params;
     const data = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
@@ -129,9 +131,10 @@ export const updateUser = async (req, res) => {
 
 // Eliminar usuario
 export const deleteUser = async (req, res) => {
+  console.log("User Controller: ");
   console.log("-> Deleting user...");
   try {
-    const id = req.params._id;
+    const {id} = req.params;
 
     const deletedUser = await User.findByIdAndDelete(id);
 
@@ -157,3 +160,53 @@ export const deleteUser = async (req, res) => {
     });
   }
 };
+
+
+// -------------- EXTRA CRUD FUNCTIONS --------------
+
+// Update user role to admin
+export const updateRole = async(req, res) => {
+  console.log("User Controller: ");
+  console.log("-> Updating user's role...");
+  try {
+    const {id} = req.params;
+
+    const userToUpdate = await User.findById(id);
+
+    if (!userToUpdate) {
+      console.log("-> User not found for update.");
+      return res.status(404).send({
+        message: "User Controller -> User not found for update.",
+        success: false,
+      });
+    }
+
+    userToUpdate.role = req.role;
+
+    const verify = await User.findByIdAndUpdate(id, userToUpdate, {new: true})
+
+    if (!verify) {
+      console.log("-> User cannot be updated.");
+      return res.status(404).send({
+        message: "User Controller -> User cannot be updated.",
+        success: false,
+      });
+    }
+
+    console.log("-> User updated successfully.");
+    return res.send({
+      message: `User Controller -> User's role updated successfully to ${userToUpdate.role}.`,
+      success: true,
+      verify,
+    });
+  } catch (error) {
+    console.error("-> An unexpected general error occurred while updating the user.", error);
+    return res.status(500).send({
+      message: "User Controller -> An unexpected general error occurred while updating the user.",
+      success: false,
+      error,
+    });
+  }
+}
+
+//
