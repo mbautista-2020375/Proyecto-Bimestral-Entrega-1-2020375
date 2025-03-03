@@ -1,7 +1,7 @@
 `use strict`
 
 import Category from "./category.model.js";
-import Publication from "../product/product.model.js"
+import Product from "../product/product.model.js"
 import mongoose from "mongoose";
 
 
@@ -33,7 +33,12 @@ export const getAllCategories = async (req, res) => {
   console.log("Category Controller: ");
   console.log("-> Fetching all categories...");
   try {
-    const categories = await Category.find();
+    const page = req.query.page;
+    
+    const limiter = 2;
+    const skipper = (-1*limiter + page*limiter)
+    const categories = await Category.find().skip(skipper).limit(limiter);
+
     if (categories.length === 0) {
       console.log("-> No categories found.");
       return res.status(404).send({

@@ -1,45 +1,28 @@
 import { model, Schema } from "mongoose";
 
-const billSchema = new Schema(
-  {
-    user: { 
+const billSchema = new Schema({
+  cart: { 
       type: Schema.Types.ObjectId, 
-      ref: "User", 
+      ref: "Cart", 
       required: true 
-    },
-    products: [
-      {
-        product: { 
-          type: Schema.Types.ObjectId, 
-          ref: "Product", 
-          required: true 
-        },
-        quantity: { 
-          type: Number, 
-          required: true, 
-          min: 1 
-        },
-        price: { 
-          type: Number, 
-          required: true 
-        }
-      }
-    ],
-    total: { 
+  },
+  total: { 
       type: Number, 
       required: true 
-    },
-    date: { 
+  },
+  date: { 
       type: Date, 
       default: Date.now 
-    },
-    status: { 
+  },
+  status: { 
       type: String, 
       enum: ["completed", "pending", "canceled"], 
       default: "pending" 
-    }
-  },
-  { timestamps: true }
-);
+  }
+},
+{
+  timestamps: true
+});
+
 
 export default model("Bill", billSchema);

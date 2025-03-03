@@ -1,16 +1,13 @@
 'use strict';
 
-import Cart from "../models/Cart.js";
-import Product from "../models/Product.js";
-import mongoose from "mongoose";
+import Cart from "./cart.model.js";
+import Product from "../product/product.model.js"
 
-console.log("Cart Controller: ");
-
-// Agregar producto al carrito
 export const addProductToCart = async (req, res) => {
+  console.log("Cart Controller: ");
   console.log("-> Adding product to cart...");
   try {
-    const userId = req.user.id;
+    const {uid} = req.user;
     const { productId, quantity } = req.body;
 
     if (quantity <= 0) {
@@ -30,17 +27,17 @@ export const addProductToCart = async (req, res) => {
       });
     }
 
-    let cart = await Cart.findOne({ user: userId });
+    let cart = await Cart.findOne({ user: uid });
 
     if (!cart) {
       cart = new Cart({
-        user: userId,
+        user: uid,
         products: [{ product: productId, quantity }],
       });
     } else {
       const productIndex = cart.products.findIndex(p => p.product.toString() === productId);
       if (productIndex >= 0) {
-        cart.products[productIndex].quantity += quantity;
+        cart.products[productIndex].quantity = Number(cart.products[productIndex].quantity) + Number(quantity);
       } else {
         cart.products.push({ product: productId, quantity });
       }
@@ -63,12 +60,12 @@ export const addProductToCart = async (req, res) => {
   }
 };
 
-// Obtener carrito del usuario
 export const getUserCart = async (req, res) => {
+  console.log("Cart Controller: ");
   console.log("-> Fetching user cart...");
   try {
-    const userId = req.user.id;
-    const cart = await Cart.findOne({ user: userId }).populate("products.product", "name price");
+    const {uid} = req.user;
+    const cart = await Cart.findOne({ user: uid }).populate("products.product", "name price");
 
     if (!cart) {
       console.log("-> Cart not found.");
@@ -94,11 +91,11 @@ export const getUserCart = async (req, res) => {
   }
 };
 
-// Actualizar cantidad de un producto en el carrito
 export const updateProductQuantity = async (req, res) => {
+  console.log("Cart Controller: ");
   console.log("-> Updating product quantity in cart...");
   try {
-    const userId = req.user.id;
+    const {uid} = req.user;
     const { productId, quantity } = req.body;
 
     if (quantity <= 0) {
@@ -109,7 +106,7 @@ export const updateProductQuantity = async (req, res) => {
       });
     }
 
-    const cart = await Cart.findOne({ user: userId });
+    const cart = await Cart.findOne({ user: uid });
     if (!cart) {
       console.log("-> Cart not found.");
       return res.status(404).send({
@@ -145,14 +142,14 @@ export const updateProductQuantity = async (req, res) => {
   }
 };
 
-// Eliminar producto del carrito
 export const removeProductFromCart = async (req, res) => {
+  console.log("Cart Controller: ");
   console.log("-> Removing product from cart...");
   try {
-    const userId = req.user.id;
+    const {uid} = req.user;
     const { productId } = req.body;
 
-    const cart = await Cart.findOne({ user: userId });
+    const cart = await Cart.findOne({ user: uid });
     if (!cart) {
       console.log("-> Cart not found.");
       return res.status(404).send({
@@ -179,13 +176,13 @@ export const removeProductFromCart = async (req, res) => {
   }
 };
 
-// Vaciar carrito
 export const clearCart = async (req, res) => {
+  console.log("Cart Controller: ");
   console.log("-> Clearing cart...");
   try {
-    const userId = req.user.id;
+    const {uid} = req.user;
 
-    const cart = await Cart.findOne({ user: userId });
+    const cart = await Cart.findOne({ user: uid });
     if (!cart) {
       console.log("-> Cart not found.");
       return res.status(404).send({

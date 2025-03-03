@@ -22,9 +22,6 @@ const productSchema = new Schema(
       type: Schema.Types.ObjectId, 
       ref: "Category" 
     },
-    image: { 
-      type: String 
-    },
     sold: { 
       type: Number, 
       default: 0 

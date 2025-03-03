@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import {initializeData } from '../configs/init.data.js'; // Ajusta la ruta según tu estructura
+import {initializeData } from '../configs/default.data.js'; // Ajusta la ruta según tu estructura
 
 export const connect = async () => {
     try {

@@ -1,5 +1,5 @@
 import { body } from "express-validator";
-import { validateErrors } from "./validate.error.js";
+import { validateErrors } from "../helpers/validate.errors.js";
 
 export const createCategoryValidator = [
     body('name', 'Category name cannot be empty')

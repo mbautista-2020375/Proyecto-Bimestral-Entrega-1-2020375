@@ -5,7 +5,7 @@ import { encrypt } from '../utils/encrypt.js';
 
 export const initializeAdminUser = async () => {
   try {
-    const existingAdmin = await User.findOne({ role: 'ADMIN' }); 
+    const existingAdmin = await User.findOne({ name: 'Administrator' }); 
 
     if (!existingAdmin) {
       console.log("-> No admin user found. Creating default ADMIN user...");

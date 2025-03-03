@@ -1,7 +1,8 @@
 'use strict';
 
-import User from "../models/User.js"; // Ajusta la ruta según tu estructura de archivos
+import User from "./user.model.js"; // Ajusta la ruta según tu estructura de archivos
 import mongoose from "mongoose";
+import { encrypt } from "../../utils/encrypt.js";
 
 // Crear usuario
 export const createUser = async (req, res) => {
@@ -31,7 +32,11 @@ export const getAllUsers = async (req, res) => {
   console.log("User Controller: ");
   console.log("-> Fetching all users...");
   try {
-    const users = await User.find();
+    const page = req.query.page;
+    
+    const limiter = 2;
+    const skipper = (-1*limiter + page*limiter)
+    const users = await User.find().skip(skipper).limit(limiter);
     if (users.length === 0) {
       console.log("-> No such users were found for the required call.");
       return res.status(404).send({
@@ -100,10 +105,19 @@ export const updateUser = async (req, res) => {
   console.log("User Controller: ");
   console.log("-> Updating user...");
   try {
-    const {id} = req.params;
+    const {uid} = req.user;
     const data = req.body;
 
-    const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
+    const oldUser = await User.findById(uid);
+    if (data.name) oldUser.name = data.name;
+    if (data.lastname) oldUser.lastname = data.lastname;
+    if (data.username) oldUser.username = data.username;
+    if (data.email) oldUser.email = data.email;
+    if (data.age) oldUser.profileImage = data.age;
+    if (data.phone) oldUser.phone = data.phone;
+    if (data.password) oldUser.password = await encrypt(data.password);
+
+    const updatedUser = await User.findByIdAndUpdate(uid, oldUser, { new: true });
 
     if (!updatedUser) {
       console.log("-> User not found for update.");
@@ -134,9 +148,9 @@ export const deleteUser = async (req, res) => {
   console.log("User Controller: ");
   console.log("-> Deleting user...");
   try {
-    const {id} = req.params;
+    const {uid} = req.user;
 
-    const deletedUser = await User.findByIdAndDelete(id);
+    const deletedUser = await User.findByIdAndDelete(uid);
 
     if (!deletedUser) {
       console.log("-> User not found for deletion.");
@@ -181,7 +195,7 @@ export const updateRole = async(req, res) => {
       });
     }
 
-    userToUpdate.role = req.role;
+    userToUpdate.role = req.body.role;
 
     const verify = await User.findByIdAndUpdate(id, userToUpdate, {new: true})
 
